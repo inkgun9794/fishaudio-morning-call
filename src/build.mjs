@@ -3,6 +3,7 @@
 //        npm run build            (목록)
 import { readFile, readdir } from 'node:fs/promises';
 import { ttsToFile } from './fish.mjs';
+import { compose, normalize } from './tags.mjs';
 
 const C = { dim:'\x1b[2m', b:'\x1b[1m', g:'\x1b[32m', y:'\x1b[33m', m:'\x1b[35m', r:'\x1b[31m', x:'\x1b[0m' };
 const name = process.argv[2];
@@ -21,16 +22,15 @@ console.log(`\n${C.b}  ${call.title || name}${C.x}`);
 console.log(`${C.dim}  ${process.env.FISH_MODEL} · ${(process.env.FISH_REFERENCE_ID || '기본').slice(0, 8)}${C.x}\n`);
 
 let ok = 0;
-for (const s of call.stages) {
-  const tag = (s.text.match(/^(\[[^\]]+\])+/) || [''])[0];
-  const body = s.text.slice(tag.length).trim();
+for (const raw of call.stages) {
+  const s = normalize(raw);
   const file = `out/${name}/${(s.at || String(ok + 1)).replace(':', '')}.mp3`;
 
   console.log(`  ${C.y}${s.at || ok + 1}${C.x}`);
-  console.log(`  ${C.m}${tag}${C.x}`);
-  console.log(`  ${body}`);
+  if (s.tags.length) console.log(`  ${C.m}${s.tags.map((t) => `(${t})`).join(' ')}${C.x}`);
+  console.log(`  ${s.text}`);
   try {
-    const r = await ttsToFile(s.text, file);
+    const r = await ttsToFile(compose(s.tags, s.text), file);
     ok++;
     console.log(`  ${C.g}✓${C.x} ${C.dim}${file} · ${(r.bytes / 1024).toFixed(0)}KB${C.x}\n`);
   } catch (e) {

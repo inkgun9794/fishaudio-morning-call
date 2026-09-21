@@ -5,6 +5,7 @@ import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { tts, listModels, ttsToFile } from '../src/fish.mjs';
+import { GROUPS, compose, normalize } from '../src/tags.mjs';
 
 const PORT = Number(process.env.PORT || 5173);
 const MIME = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.json':'application/json; charset=utf-8' };
@@ -23,6 +24,9 @@ const server = createServer(async (req, res) => {
   const p = url.pathname;
 
   try {
+    // ── 태그 사전 ──
+    if (p === '/api/tags') return json(res, 200, { groups: GROUPS });
+
     // ── 보이스 목록 ──
     if (p === '/api/voices') {
       const data = await listModels({ self: true, pageSize: 50 });
@@ -34,9 +38,9 @@ const server = createServer(async (req, res) => {
 
     // ── 한 줄 미리듣기: mp3 바이트를 그대로 돌려준다 ──
     if (p === '/api/tts' && req.method === 'POST') {
-      const { text, referenceId } = await body(req);
+      const { text, tags, referenceId } = await body(req);
       if (!text?.trim()) return json(res, 400, { error: '대사가 비어 있습니다.' });
-      const audio = await tts(text, { referenceId: referenceId || undefined });
+      const audio = await tts(compose(tags, text), { referenceId: referenceId || undefined });
       res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Content-Length': audio.length });
       return res.end(audio);
     }
@@ -58,6 +62,7 @@ const server = createServer(async (req, res) => {
       if (!name || /[\/:*?"<>|]/.test(name)) return json(res, 400, { error: '이름에 쓸 수 없는 문자가 있습니다.' });
       if (req.method === 'GET') {
         const c = JSON.parse(await readFile(`calls/${name}.json`, 'utf8'));
+        c.stages = (c.stages || []).map(normalize);
         return json(res, 200, c);
       }
       if (req.method === 'PUT') {
@@ -75,7 +80,7 @@ const server = createServer(async (req, res) => {
       for (const [i, s] of stages.entries()) {
         const file = `out/${name}/${(s.at || String(i + 1)).replace(':', '')}.mp3`;
         try {
-          const r = await ttsToFile(s.text, file, { referenceId: referenceId || undefined });
+          const r = await ttsToFile(compose(s.tags, s.text), file, { referenceId: referenceId || undefined });
           results.push({ at: s.at, file, bytes: r.bytes, ok: true });
         } catch (e) {
           results.push({ at: s.at, error: e.message, ok: false });

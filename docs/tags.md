@@ -1,86 +1,77 @@
-# Emotion Tag 팔레트
+# 연기 지시 (Emotion Tags)
 
-대사 앞에 `[ ]`로 넣는다. 태그는 **뒤따르는 대사 전체**에 걸린다.
-겹쳐 쓸 수 있다 — `[whispering][soft tone]`.
-S2 계열(`s2.1-pro`, `s2.1-pro-free`)은 대괄호, S1은 소괄호를 쓴다.
-
-## 기본 감정
-
-| 태그 | 느낌 | 태그 | 느낌 |
-|---|---|---|---|
-| `happy` | 기쁨 | `sad` | 슬픔 |
-| `angry` | 화남 | `excited` | 신남 |
-| `calm` | 차분 | `nervous` | 긴장 |
-| `confident` | 자신감 | `surprised` | 놀람 |
-| `satisfied` | 만족 | `delighted` | 아주 기쁨 |
-| `scared` | 겁먹음 | `worried` | 걱정 |
-| `upset` | 속상 | `frustrated` | 답답 |
-| `depressed` | 침울 | `empathetic` | 공감 |
-| `embarrassed` | 민망 | `disgusted` | 역겨움 |
-| `moved` | 뭉클 | `proud` | 뿌듯 |
-| `relaxed` | 느긋 | `grateful` | 고마움 |
-| `curious` | 궁금 | `sarcastic` | **비꼼** |
-
-## 고급 감정
-
-| 태그 | 느낌 | 태그 | 느낌 |
-|---|---|---|---|
-| `disdainful` | 깔봄 | `unhappy` | 언짢음 |
-| `anxious` | 불안 | `hysterical` | 발작적 |
-| `indifferent` | **무관심·시큰둥** | `uncertain` | 확신 없음 |
-| `doubtful` | 의심 | `confused` | 혼란 |
-| `disappointed` | 실망 | `regretful` | 후회 |
-| `guilty` | 죄책감 | `ashamed` | 부끄러움 |
-| `jealous` | 질투 | `envious` | 부러움 |
-| `hopeful` | 희망 | `optimistic` | 낙관 |
-| `pessimistic` | 비관 | `nostalgic` | 그리움 |
-| `lonely` | 외로움 | `bored` | 지루함 |
-| `contemptuous` | 경멸 | `sympathetic` | 측은 |
-| `compassionate` | 연민 | `determined` | 단호 |
-| `resigned` | **체념** | | |
-
-## 톤 (모닝콜에서 제일 많이 쓴다)
-
-| 태그 | 느낌 |
-|---|---|
-| `whispering` | **속삭임** — 1단계 필수 |
-| `soft tone` | 부드럽게 |
-| `in a hurry tone` | 다급하게 |
-| `shouting` | **외침** — 3단계 |
-| `screaming` | 비명에 가까운 고함 |
-| `emphasis` | 특정 부분 강조 |
-
-## 소리 효과
-
-`laughing` 웃음 · `chuckling` 킥킥 · `sobbing` 흐느낌 · `crying loudly` 통곡
-`sighing` **한숨** · `groaning` 끙 · `panting` 헐떡임 · `gasping` 헉
-`yawning` **하품** · `snoring` 코골이 · `clear throat` 헛기침
-
-## 사이 띄우기
-
-`[break]` 짧은 쉼 · `[long-break]` 긴 쉼
-
-## 자연어 지시
-
-고정 목록에 없어도 된다. 그냥 한국어로 써도 먹힌다.
+웹 UI에서는 **한글로 고르기만 하면 된다.** 아래 표는 그게 실제로 뭘로 바뀌는지다.
+Fish Audio에 보낼 때만 변환되고, 사전은 [`src/tags.mjs`](../src/tags.mjs) 한 곳에만 있다.
 
 ```
-[퇴근하고 10시간째 한숨도 못 잔 사람의 다 쉰 목소리]
-[새벽 4시에 잠꼬대하듯 웅얼거리는 목소리]
-[코가 완전히 막힌 감기 환자 목소리]
+(버럭)              →  [shouting][angry]
+(속삭이며)(부드럽게)  →  [whispering][soft tone]
 ```
 
-## 모닝콜용 조합 추천
+지시는 **뒤따르는 대사 전체**에 걸린다. 여러 개 겹칠 수 있다.
 
-| 단계 | 조합 |
+## 모닝콜 조합
+
+자주 쓰는 걸 미리 묶어놨다.
+
+| 한글 | 실제 태그 |
 |---|---|
-| 1차 달콤 | `[whispering][soft tone]` |
-| 1차 다정 | `[soft tone][calm]` |
-| 2차 슬슬 | `[sighing][worried]` |
-| 2차 짜증 | `[unhappy][in a hurry tone]` |
-| 3차 버럭 | `[shouting][angry]` |
-| 3차 절규 | `[screaming][in a hurry tone]` |
-| 마무리 비꼼 | `[sarcastic][chuckling]` |
-| 마무리 체념 | `[resigned][sighing]` |
+| 달래듯 | `whispering` `soft tone` |
+| 다정하게 | `soft tone` `calm` |
+| 슬슬 지쳐 | `sighing` `worried` |
+| 짜증내며 | `unhappy` `in a hurry tone` |
+| 버럭 | `shouting` `angry` |
+| 악을 쓰며 | `screaming` `in a hurry tone` |
+| 비꼬며 | `sarcastic` `chuckling` |
+| 체념하며 | `resigned` `sighing` |
 
-전체 목록: <https://docs.fish.audio/developer-guide/core-features/emotions>
+## 톤
+
+속삭이며 `whispering` · 부드럽게 `soft tone` · 다급하게 `in a hurry tone`
+소리치며 `shouting` · 고함치며 `screaming` · 힘주어 `emphasis`
+
+## 감정
+
+기쁘게 `happy` · 신나서 `excited` · 무척 기뻐 `delighted` · 뿌듯하게 `proud`
+고마워하며 `grateful` · 흡족하게 `satisfied` · 차분하게 `calm` · 느긋하게 `relaxed`
+화내며 `angry` · 언짢게 `unhappy` · 답답해하며 `frustrated` · 속상해하며 `upset`
+슬퍼하며 `sad` · 침울하게 `depressed` · 외롭게 `lonely` · 실망해서 `disappointed`
+걱정하며 `worried` · 불안해하며 `anxious` · 긴장해서 `nervous` · 겁먹고 `scared`
+놀라서 `surprised` · 헷갈려하며 `confused` · 의심하며 `doubtful` · 궁금해하며 `curious`
+비꼬며 `sarcastic` · 시큰둥하게 `indifferent` · 깔보며 `disdainful` · 경멸하며 `contemptuous`
+지루해하며 `bored` · 체념하며 `resigned` · 단호하게 `determined` · 자신있게 `confident`
+민망해하며 `embarrassed` · 부끄러워하며 `ashamed` · 죄책감에 `guilty` · 후회하며 `regretful`
+그리워하며 `nostalgic` · 뭉클하게 `moved` · 공감하며 `empathetic` · 안쓰러워하며 `sympathetic`
+희망차게 `hopeful` · 질투하며 `jealous`
+
+## 소리
+
+한숨쉬며 `sighing` · 하품하며 `yawning` · 웃으며 `laughing` · 킥킥대며 `chuckling`
+흐느끼며 `sobbing` · 엉엉 울며 `crying loudly` · 헛기침하며 `clear throat`
+헉 하고 `gasping` · 헐떡이며 `panting` · 끙 앓으며 `groaning` · 코를 골며 `snoring`
+
+## 사이
+
+짧은 쉼 `break` · 긴 쉼 `long-break`
+
+## 사전에 없는 말도 된다
+
+Fish Audio는 **자연어 연기 지시**를 받는다. 목록에 없는 한글을 쓰면 변환 없이 그대로 전달된다.
+
+```
+(퇴근하고 10시간째 한숨도 못 잔 사람의 다 쉰 목소리)
+(새벽 4시에 잠꼬대하듯 웅얼거리는 목소리)
+(코가 완전히 막힌 감기 환자 목소리)
+```
+
+구체적일수록 잘 먹는다. 팔레트 검색에서 안 나오면 그냥 직접 쓰면 된다.
+
+## 태그 추가하기
+
+[`src/tags.mjs`](../src/tags.mjs)의 `GROUPS`에 한 줄 넣으면 UI·CLI에 동시에 반영된다.
+
+```js
+['졸린 듯이', ['yawning', 'soft tone']],
+```
+
+원본 태그 목록: <https://docs.fish.audio/developer-guide/core-features/emotions>
