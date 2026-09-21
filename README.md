@@ -14,12 +14,31 @@
 
 ```bash
 cp .env.example .env    # FISH_API_KEY 채우기
+npm run voices          # 내 보이스 모델 ID 확인 -> .env의 FISH_REFERENCE_ID
 npm run call -- --list  # 프리셋 목록
 npm run call -- escalation
 npm run ab              # 태그만 바꾼 A/B 소재
 ```
 
 Node 20+ 만 있으면 된다. 외부 의존성 없음 (`--env-file`, 내장 `fetch` 사용).
+
+> **크레딧 주의.** Fish Audio는 지갑이 둘로 나뉜다. 웹앱에서 쓰는 *플랫폼 크레딧*과
+> API/MCP에서 쓰는 *API 크레딧*은 별개라, 웹에 잔액이 남아 있어도 API는 402를 뱉는다.
+> <https://fish.audio/app/developers> 에서 API 크레딧을 따로 충전해야 한다.
+
+크레딧 없이 레이아웃·녹화만 확인하려면 `FISH_DRY_RUN=1`을 붙이면 된다. 호출 없이 무음 파일을 만든다.
+
+## 과정 녹화
+
+작업하는 터미널을 그대로 세로 영상으로 뽑는다. PTY가 필요 없어서 Windows에서도 돈다.
+
+```bash
+npm run rec -- call escalation   # out/rec/call-escalation.cast
+npm run render call-escalation   # -> .gif -> .mp4 (1080x1920)
+```
+
+`src/record.mjs`가 asciicast v2를 직접 쓰고, `tools/agg.exe`가 GIF로,
+ffmpeg가 릴스 규격 mp4로 굽는다. 명령어는 한 글자씩 타이핑되는 연출이 들어간다.
 
 ## 프리셋
 

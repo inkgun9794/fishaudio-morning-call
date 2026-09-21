@@ -29,6 +29,13 @@ export async function tts(text, opts = {}) {
     prosody,
   } = opts;
 
+  // 크레딧 없이 레이아웃/녹화를 검증할 때 쓴다. 실제 호출 없이 무음 mp3 프레임을 만든다.
+  if (process.env.FISH_DRY_RUN === '1') {
+    await new Promise((r) => setTimeout(r, 600 + Math.random() * 900));
+    const frame = Buffer.from([0xff, 0xfb, 0x90, 0x64, ...new Array(1000).fill(0)]);
+    return Buffer.concat(new Array(40).fill(frame));
+  }
+
   const body = { text, format, mp3_bitrate: mp3Bitrate, temperature, top_p: topP, latency };
   if (referenceId) body.reference_id = referenceId;
   if (prosody) body.prosody = prosody;

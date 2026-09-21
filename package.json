@@ -7,7 +7,11 @@
   "scripts": {
     "call": "node --env-file=.env src/generate.mjs",
     "ab": "node --env-file=.env src/ab-demo.mjs",
-    "voices": "node --env-file=.env src/voices.mjs"
+    "voices": "node --env-file=.env src/voices.mjs",
+    "rec": "node src/record.mjs",
+    "render": "node src/render.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
