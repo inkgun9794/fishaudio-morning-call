@@ -84,6 +84,52 @@ const server = createServer(async (req, res) => {
       return json(res, 200, { results, dir: `out/${name}` });
     }
 
+    // ── 보이스 클론: 원본 바이트를 그대로 받아 Fish Audio로 넘긴다 ──
+    // multipart 파서를 쓰지 않으려고 파일명/제목은 헤더로 받는다.
+    if (p === '/api/clone' && req.method === 'POST') {
+      const title = decodeURIComponent(req.headers['x-title'] || '내 목소리');
+      const filename = decodeURIComponent(req.headers['x-filename'] || 'voice.webm');
+      const mime = req.headers['x-mime'] || 'application/octet-stream';
+
+      const chunks = [];
+      let size = 0;
+      for await (const c of req) {
+        size += c.length;
+        if (size > 60e6) { req.destroy(); return json(res, 413, { error: '파일이 너무 큽니다 (60MB 초과).' }); }
+        chunks.push(c);
+      }
+      if (!size) return json(res, 400, { error: '파일이 비어 있습니다.' });
+
+      const fd = new FormData();
+      fd.set('type', 'tts');
+      fd.set('title', title);
+      fd.set('visibility', 'private');
+      fd.set('train_mode', 'fast');
+      fd.set('enhance_audio_quality', 'true');
+      fd.append('voices', new Blob([Buffer.concat(chunks)], { type: mime }), filename);
+
+      const r = await fetch('https://api.fish.audio/model', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.FISH_API_KEY}` },
+        body: fd,
+      });
+      const text = await r.text();
+      if (!r.ok) return json(res, r.status, { error: text.slice(0, 300) });
+      const m = JSON.parse(text);
+      return json(res, 200, { id: m._id || m.id, title: m.title, state: m.state });
+    }
+
+    // ── 보이스 삭제 ──
+    if (p.startsWith('/api/voices/') && req.method === 'DELETE') {
+      const id = p.slice('/api/voices/'.length);
+      if (!/^[0-9a-f]{32}$/.test(id)) return json(res, 400, { error: '잘못된 ID' });
+      const r = await fetch(`https://api.fish.audio/model/${id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${process.env.FISH_API_KEY}` },
+      });
+      if (!r.ok) return json(res, r.status, { error: await r.text() });
+      return json(res, 200, { ok: true });
+    }
+
     // ── 결과 폴더 열기 ──
     if (p === '/api/reveal' && req.method === 'POST') {
       const { dir } = await body(req);

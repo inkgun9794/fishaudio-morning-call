@@ -62,6 +62,17 @@ aside p.hint{margin:0 0 12px;font-size:12px;color:var(--dim);line-height:1.5}
 .chip:hover{border-color:var(--tag);background:#241e2e}
 .chip small{color:var(--dim);margin-left:4px;font-size:11px}
 
+[hidden]{display:none !important}
+.vrow{display:flex;gap:8px;margin-bottom:8px}
+.vrow .btn{flex:1;white-space:nowrap}
+.vinfo{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px;min-height:0}
+.vinfo:empty{margin-bottom:0}
+.rec-on{color:#ff7b72;border-color:#ff7b72 !important}
+.sep{border:0;border-top:1px solid var(--line);margin:16px 0 14px}
+.del{background:none;border:1px solid var(--line);border-radius:7px;width:32px;height:32px;
+  color:var(--dim);display:grid;place-items:center}
+.del:hover{color:var(--err);border-color:var(--err)}
+
 footer{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.94);
   backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 20px;
   display:flex;gap:12px;align-items:center;justify-content:center}
@@ -78,6 +89,7 @@ footer{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.94);
   <select id="saved" style="max-width:170px"><option value="">불러오기…</option></select>
   <span class="sp"></span>
   <select id="voice" style="max-width:220px"></select>
+  <button class="del" id="delvoice" title="이 목소리 삭제">×</button>
   <button class="btn" id="save">저장</button>
 </header>
 
@@ -88,6 +100,21 @@ footer{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.94);
   </section>
 
   <aside>
+    <h2>목소리 추가</h2>
+    <p class="hint">10초 이상, 1~2분이 가장 좋아요. 조용한 곳에서 한 사람만.</p>
+    <div class="vrow">
+      <button class="btn" id="rec">● 녹음</button>
+      <button class="btn" id="pickfile">파일 선택</button>
+      <input type="file" id="file" accept="audio/*" hidden>
+    </div>
+    <div id="vinfo" class="vinfo"></div>
+    <div class="vrow" id="vmake" hidden>
+      <input type="text" id="vname" placeholder="목소리 이름" style="flex:1;min-width:0">
+      <button class="btn primary" id="makevoice">만들기</button>
+    </div>
+    <div id="vlog" class="vinfo"></div>
+    <hr class="sep">
+
     <h2>태그 팔레트</h2>
     <p class="hint">대사 칸을 클릭한 뒤 태그를 누르면 커서 자리에 들어가요. 겹쳐 쓸 수 있어요.</p>
     <div id="palette"></div>
@@ -286,14 +313,127 @@ $('#reveal').onclick = () => fetch('/api/reveal', {
 });
 
 function log(msg, cls) { const l = $('#log'); l.className = cls || ''; l.textContent = msg; }
+function vlog(msg, cls) { const l = $('#vlog'); l.className = 'vinfo ' + (cls || ''); l.textContent = msg; }
+
+// ── 목소리 추가 ─────────────────────────────────────────
+let blobToClone = null, recorder = null, chunks = [], recTimer = null, recStart = 0;
+
+// 오디오 길이를 브라우저에서 미리 잰다. 10초 미만이면 클론 품질이 무너진다.
+function duration(blob) {
+  return new Promise((done) => {
+    const a = new Audio(URL.createObjectURL(blob));
+    a.onloadedmetadata = () => done(isFinite(a.duration) ? a.duration : null);
+    a.onerror = () => done(null);
+  });
+}
+
+async function stage(blob, label) {
+  blobToClone = blob;
+  const d = await duration(blob);
+  const secs = d ? Math.round(d) : null;
+  const size = (blob.size / 1024 / 1024).toFixed(2) + 'MB';
+  let msg = `${label} · ${size}` + (secs ? ` · ${secs}초` : '');
+  let cls = '';
+  if (secs !== null && secs < 10) { msg += ' — 10초 미만이라 품질이 많이 떨어져요'; cls = 'err'; }
+  else if (secs !== null && secs < 30) { msg += ' — 1분쯤 되면 더 좋아요'; }
+  $('#vinfo').className = 'vinfo ' + cls;
+  $('#vinfo').textContent = msg;
+  $('#vmake').hidden = false;
+}
+
+$('#pickfile').onclick = () => $('#file').click();
+$('#file').onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  blobToClone = f;
+  stage(f, f.name);
+  if (!$('#vname').value) $('#vname').value = f.name.replace(/\.[^.]+$/, '');
+};
+
+$('#rec').onclick = async () => {
+  if (recorder && recorder.state === 'recording') {
+    recorder.stop();
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    chunks = [];
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+    recorder = new MediaRecorder(stream, { mimeType: mime });
+    recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    recorder.onstop = () => {
+      clearInterval(recTimer);
+      stream.getTracks().forEach((t) => t.stop());
+      $('#rec').textContent = '● 녹음';
+      $('#rec').classList.remove('rec-on');
+      stage(new Blob(chunks, { type: 'audio/webm' }), '방금 녹음');
+    };
+    recorder.start();
+    recStart = Date.now();
+    $('#rec').classList.add('rec-on');
+    recTimer = setInterval(() => {
+      const s = Math.floor((Date.now() - recStart) / 1000);
+      $('#rec').textContent = `■ 정지 ${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }, 250);
+    vlog('녹음 중… 대본은 samples/대본.md 에 있어요');
+  } catch (e) {
+    vlog('마이크를 쓸 수 없어요: ' + e.message, 'err');
+  }
+};
+
+$('#makevoice').onclick = async () => {
+  if (!blobToClone) return vlog('먼저 녹음하거나 파일을 고르세요', 'err');
+  const title = $('#vname').value.trim();
+  if (!title) return vlog('목소리 이름을 정해주세요', 'err');
+
+  $('#makevoice').disabled = true;
+  vlog('올리는 중… 20초쯤 걸려요');
+  try {
+    const name = blobToClone.name || 'rec.webm';
+    const r = await fetch('/api/clone', {
+      method: 'POST',
+      headers: {
+        'X-Title': encodeURIComponent(title),
+        'X-Filename': encodeURIComponent(name),
+        'X-Mime': blobToClone.type || 'application/octet-stream',
+      },
+      body: blobToClone,
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || r.status);
+    await refreshVoices(d.id);
+    vlog(`"${d.title}" 만들어졌어요 — 바로 미리듣기 해보세요`, 'ok');
+    $('#vmake').hidden = true;
+    $('#vinfo').textContent = '';
+    blobToClone = null;
+  } catch (e) {
+    vlog(String(e.message).slice(0, 160), 'err');
+  } finally { $('#makevoice').disabled = false; }
+};
+
+$('#delvoice').onclick = async () => {
+  const sel = $('#voice');
+  const id = sel.value;
+  if (!id) return vlog('기본 보이스는 지울 수 없어요', 'err');
+  if (!confirm(`"${sel.selectedOptions[0].textContent}" 을(를) 삭제할까요? 되돌릴 수 없어요.`)) return;
+  const r = await fetch('/api/voices/' + id, { method: 'DELETE' });
+  if (r.ok) { await refreshVoices(''); vlog('삭제됨', 'ok'); }
+  else vlog('삭제 실패', 'err');
+};
+
+async function refreshVoices(select) {
+  const data = await (await fetch('/api/voices')).json();
+  const sel = $('#voice');
+  const keep = select !== undefined ? select : sel.value;
+  sel.innerHTML = '';
+  sel.append(el('option', { value: '', textContent: '기본 보이스' }));
+  for (const v of data.items) sel.append(el('option', { value: v.id, textContent: v.title }));
+  sel.value = keep || data.current || '';
+}
 
 (async function init() {
   buildPalette();
-  const data = await (await fetch('/api/voices')).json();
-  const sel = $('#voice');
-  sel.append(el('option', { value: '', textContent: '기본 보이스' }));
-  for (const v of data.items) sel.append(el('option', { value: v.id, textContent: v.title }));
-  sel.value = data.current || '';
+  await refreshVoices();
   await refreshSaved();
   stages = [{ at: '07:00', text: '' }];
   render();
