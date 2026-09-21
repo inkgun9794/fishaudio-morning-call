@@ -1,0 +1,20 @@
+# secrets
+.env
+.env.local
+
+# generated audio / video
+out/
+*.mp3
+*.wav
+*.pcm
+*.opus
+*.mp4
+*.mov
+
+# deps
+node_modules/
+package-lock.json
+
+# os
+.DS_Store
+Thumbs.db

@@ -1,0 +1,70 @@
+{
+  "_readme": "대사 앞의 [ ] 안이 Emotion Tag. 고정 태그(happy, shouting...)도 되고, 자연어 연기 지시도 된다. 태그는 뒤따르는 대사 전체에 영향을 준다.",
+
+  "presets": {
+    "escalation": {
+      "title": "1분마다 인내심이 사라지는 모닝콜",
+      "hook": "같은 사람이 3번 깨우는데 점점 화가 난다. 목소리 모델은 하나, 바뀐 건 대괄호 안뿐.",
+      "lines": [
+        { "id": "01-sweet",  "label": "7:00 · 1차", "text": "[soft tone][whispering] 자기야... 아침이야. 눈만 살짝 떠볼래?" },
+        { "id": "02-nudge",  "label": "7:10 · 2차", "text": "[slightly impatient][sighing] 하아... 두 번째야. 진짜 일어나야 돼." },
+        { "id": "03-burst",  "label": "7:20 · 3차", "text": "[shouting][angry] 야!! 일어나!! 지금 몇 시인 줄 알아?!" },
+        { "id": "04-give-up","label": "7:21 · 포기", "text": "[sarcastic][indifferent] 어~ 그래. 계속 자. 지각도 다 경험이야." }
+      ]
+    },
+
+    "sweet": {
+      "title": "달콤하게 깨우기",
+      "hook": "귀에 대고 속삭이는 톤. [whispering]과 [soft tone]을 겹쳐 쓴다.",
+      "lines": [
+        { "id": "01", "label": "속삭임", "text": "[whispering][soft tone] 일어났어? 아니야, 안 깨워도 돼. 그냥 목소리 들려주려고." },
+        { "id": "02", "label": "미소",   "text": "[warm and smiling][calm] 오늘 날씨 진짜 좋다. 창문 열면 바로 알 거야." },
+        { "id": "03", "label": "응원",   "text": "[happy][excited] 자, 하나. 둘. 셋! 오늘도 잘 해낼 거야." }
+      ]
+    },
+
+    "angry": {
+      "title": "화난 목소리로 깨우기",
+      "hook": "엄마 버전. [shouting]과 [sarcastic]의 낙차가 웃음 포인트.",
+      "lines": [
+        { "id": "01", "label": "경고",   "text": "[annoyed][in a hurry tone] 야. 세 번째다. 밥 식는다." },
+        { "id": "02", "label": "버럭",   "text": "[screaming][angry] 안 일어나?! 엄마 진짜 올라간다!!" },
+        { "id": "03", "label": "체념",   "text": "[resigned][sighing] 됐다. 굶어라. 엄마는 모르겠다." }
+      ]
+    },
+
+    "butler": {
+      "title": "AI 집사 모닝 브리핑",
+      "hook": "자비스 톤. 감정을 '없애는' 것도 태그로 한다.",
+      "lines": [
+        { "id": "01", "label": "기상",   "text": "[calm][confident] 좋은 아침입니다. 현재 시각 오전 7시, 외부 기온은 3도입니다." },
+        { "id": "02", "label": "일정",   "text": "[calm] 오늘 첫 일정은 열 시 회의입니다. [emphasis] 자료는 아직 열어보지 않으셨습니다." },
+        { "id": "03", "label": "농담",   "text": "[chuckling][sarcastic] 물론, 지금 일어나시면 충분한 시간입니다. 지금 일어나신다면요." }
+      ]
+    },
+
+    "natural-language": {
+      "title": "자연어 연기 지시 실험",
+      "hook": "고정 태그 목록에 없는 문장을 그대로 넣어본다. 이게 Fish Audio가 제일 밀고 있는 지점.",
+      "lines": [
+        { "id": "01", "label": "밤샘",   "text": "[퇴근하고 10시간째 한숨도 못 잔 사람의 다 쉰 목소리] 야... 나 아직 안 잤어. 근데 너는 일어나야지." },
+        { "id": "02", "label": "감기",   "text": "[코가 완전히 막히고 목이 부은 감기 환자 목소리] 미안, 오늘 모닝콜은 이게 최선이야." },
+        { "id": "03", "label": "무대",   "text": "[텅 빈 체육관에서 마이크 없이 외치는 사람] 일어나라!! 오늘은 네 날이다!!" },
+        { "id": "04", "label": "새벽",   "text": "[새벽 4시에 잠꼬대하듯 웅얼거리는 목소리] 음... 아직... 세 시간 남았어... 더 자..." }
+      ]
+    }
+  },
+
+  "ab_demo": {
+    "title": "태그만 바꾼 A/B",
+    "hook": "대사 한 글자도 안 바꾸고 대괄호만 교체한다.",
+    "line": "일어나. 벌써 일곱 시야.",
+    "variants": [
+      { "id": "a-neutral",   "label": "태그 없음",  "tag": "" },
+      { "id": "b-sweet",     "label": "달콤",      "tag": "[whispering][soft tone]" },
+      { "id": "c-angry",     "label": "분노",      "tag": "[shouting][angry]" },
+      { "id": "d-sarcastic", "label": "비꼼",      "tag": "[sarcastic][chuckling]" },
+      { "id": "e-exhausted", "label": "자연어",    "tag": "[밤새 울다가 지쳐서 목이 다 쉰 사람]" }
+    ]
+  }
+}

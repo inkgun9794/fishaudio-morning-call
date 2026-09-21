@@ -1,0 +1,13 @@
+{
+  "name": "fishaudio-morning-call",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fish Audio Emotion Tags로 만드는 감정형 모닝콜",
+  "scripts": {
+    "call": "node --env-file=.env src/generate.mjs",
+    "ab": "node --env-file=.env src/ab-demo.mjs",
+    "voices": "node --env-file=.env src/voices.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
