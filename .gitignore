@@ -12,9 +12,9 @@ out/
 *.mp4
 *.mov
 
-# 내 목소리 녹음 원본은 올리지 않는다 (README만 추적)
+# 녹음 원본(오디오)은 올리지 않는다. 대본 같은 문서는 추적한다.
 samples/*
-!samples/README.md
+!samples/*.md
 
 # 다운로드한 바이너리
 tools/
