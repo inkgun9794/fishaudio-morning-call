@@ -16,8 +16,11 @@
 
 ```bash
 cp .env.example .env    # FISH_API_KEY 채우기
-npm start               # http://localhost:5173
+npm start               # http://localhost:5173 이 자동으로 열린다
 ```
+
+터미널이 귀찮으면 더블클릭해도 된다 — Windows는 `모닝콜 스튜디오.cmd`,
+macOS는 `모닝콜 스튜디오.command` (처음 한 번은 우클릭 → 열기).
 
 브라우저에서 대사를 쓰고, 오른쪽 팔레트에서 태그를 눌러 넣고, 바로 미리듣는다.
 `전체 굽기`를 누르면 `out/<이름>/`에 mp3가 떨어진다.
@@ -78,7 +81,7 @@ npm run rec -- voices          # out/rec/voices.cast
 npm run render voices          # -> .gif -> .mp4 (1080x1920)
 ```
 
-ffmpeg가 필요하다 — `winget install Gyan.FFmpeg`
+ffmpeg가 필요하다 — Windows `winget install Gyan.FFmpeg` / macOS `brew install ffmpeg`
 
 ## 그 밖의 명령
 

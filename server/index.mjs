@@ -87,7 +87,10 @@ const server = createServer(async (req, res) => {
     // ── 결과 폴더 열기 ──
     if (p === '/api/reveal' && req.method === 'POST') {
       const { dir } = await body(req);
-      if (process.platform === 'win32') spawn('explorer.exe', [resolve(dir)], { detached: true }).unref();
+      const abs = resolve(dir);
+      const c = process.platform === 'win32' ? ['explorer.exe', [abs]]
+              : process.platform === 'darwin' ? ['open', [abs]] : ['xdg-open', [abs]];
+      spawn(c[0], c[1], { detached: true, stdio: 'ignore' }).unref();
       return json(res, 200, { ok: true });
     }
 

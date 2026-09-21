@@ -11,7 +11,7 @@ const gif  = `out/rec/${name}.gif`;
 const mp4  = `out/rec/${name}.mp4`;
 if (!existsSync(cast)) { console.error(`${cast} 없음. 먼저 npm run rec -- ... 를 실행하세요.`); process.exit(1); }
 
-const agg = process.platform === 'win32' ? 'tools/agg.exe' : 'agg';
+const agg = process.platform === 'win32' ? 'tools/agg.exe' : './tools/agg';
 const run = (bin, a) => {
   const r = spawnSync(bin, a, { stdio: 'inherit' });
   if (r.error || r.status !== 0) { console.error(`\n${bin} 실패`); process.exit(1); }
