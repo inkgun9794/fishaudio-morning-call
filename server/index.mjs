@@ -104,7 +104,25 @@ const server = createServer(async (req, res) => {
   }
 });
 
+const open = () => {
+  if (process.env.NO_OPEN) return;
+  const url = `http://localhost:${PORT}`;
+  const c = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', url]]
+          : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
+  spawn(c[0], c[1], { detached: true, stdio: 'ignore' }).unref();
+};
+
+// 이미 떠 있으면 새로 띄우지 않고 그 창만 연다 (더블클릭 두 번 해도 안전)
+server.on('error', (e) => {
+  if (e.code !== 'EADDRINUSE') { console.error(e); process.exit(1); }
+  console.log('\n  이미 실행 중입니다 — 브라우저를 엽니다.\n');
+  open();
+  setTimeout(() => process.exit(0), 700);
+});
+
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`\n  모닝콜 스튜디오  \x1b[36mhttp://localhost:${PORT}\x1b[0m`);
-  console.log(`  \x1b[2m보이스 ${(process.env.FISH_REFERENCE_ID || '기본').slice(0, 8)} · ${process.env.FISH_MODEL}\x1b[0m\n`);
+  console.log(`  \x1b[2m보이스 ${(process.env.FISH_REFERENCE_ID || '기본').slice(0, 8)} · ${process.env.FISH_MODEL}\x1b[0m`);
+  console.log(`  \x1b[2m이 창을 닫으면 꺼집니다.\x1b[0m\n`);
+  open();
 });

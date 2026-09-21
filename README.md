@@ -29,6 +29,23 @@ Node 20+ 만 있으면 된다. 외부 의존성 없음 (`--env-file`, 내장 `fe
 > 별개라, 웹에 잔액이 남아도 API는 402를 뱉는다. 다만 **`s2.1-pro-free`는 API 크레딧 0에서도
 > 호출된다** — 기본값이 그거다.
 
+## 다른 컴퓨터에서 이어서 하기
+
+코드와 `calls/`(내가 쓴 대사)는 git으로 따라온다. **`.env`는 안 따라온다** — 키가 들어 있어서 일부러 막아놨다.
+
+```bash
+git clone https://github.com/inkgun9794/fishaudio-morning-call.git
+cd fishaudio-morning-call
+cp .env.example .env     # FISH_API_KEY 붙여넣기
+npm start
+```
+
+보이스 모델(클론)은 **Fish Audio 서버에 있으니까** 어느 컴퓨터에서든 그대로 쓸 수 있다.
+`.env`의 `FISH_REFERENCE_ID`를 비워둬도 되고, 웹 UI 우상단 드롭다운에서 고르면 된다.
+ID를 확인하려면 `npm run voices`.
+
+따라오지 않는 것: `.env` · `samples/`(녹음 원본) · `out/`(결과물) · `tools/`(`npm run setup`으로 다시 받는다)
+
 ## 내 목소리 넣기
 
 ```bash
