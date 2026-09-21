@@ -8,8 +8,16 @@ out/
 *.wav
 *.pcm
 *.opus
+*.m4a
 *.mp4
 *.mov
+
+# 내 목소리 녹음 원본은 올리지 않는다 (README만 추적)
+samples/*
+!samples/README.md
+
+# 다운로드한 바이너리
+tools/
 
 # deps
 node_modules/

@@ -10,7 +10,8 @@
     "voices": "node --env-file=.env src/voices.mjs",
     "rec": "node src/record.mjs",
     "render": "node src/render.mjs",
-    "clone": "node --env-file=.env src/clone.mjs"
+    "clone": "node --env-file=.env src/clone.mjs",
+    "setup": "node src/setup.mjs"
   },
   "engines": {
     "node": ">=20"
