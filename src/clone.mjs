@@ -1,11 +1,38 @@
 // 녹음 파일 -> Fish Audio 보이스 모델(클론)
 // 사용법: npm run clone -- samples/my.m4a "내 목소리"
-import { readFile, stat } from 'node:fs/promises';
-import { basename } from 'node:path';
+import { readFile, stat, readdir } from 'node:fs/promises';
+import { basename, join } from 'node:path';
+import { homedir } from 'node:os';
+
+// Windows 음성 녹음기 등이 저장하는 곳에서 가장 최근 녹음을 찾는다
+async function findLatestRecording() {
+  const home = homedir();
+  const dirs = ['Documents/Sound recordings', 'Documents/사운드 레코딩', 'Documents/Sound Recordings',
+                'Music/Sound recordings', 'Downloads', 'Desktop'].map((d) => join(home, d));
+  dirs.push('samples');
+  const exts = new Set(['.m4a', '.wav', '.mp3', '.opus']);
+  let best = null;
+  for (const dir of dirs) {
+    const entries = await readdir(dir).catch(() => []);
+    for (const name of entries) {
+      if (!exts.has(name.slice(name.lastIndexOf('.')).toLowerCase())) continue;
+      const full = join(dir, name);
+      const st = await stat(full).catch(() => null);
+      if (st?.isFile() && (!best || st.mtimeMs > best.mtimeMs)) best = { full, mtimeMs: st.mtimeMs };
+    }
+  }
+  return best?.full || null;
+}
 
 const C = { dim:'\x1b[2m', b:'\x1b[1m', g:'\x1b[32m', c:'\x1b[36m', r:'\x1b[31m', x:'\x1b[0m' };
-const [file, title = '내 목소리'] = process.argv.slice(2);
-if (!file) { console.error('사용법: npm run clone -- samples/my.m4a "내 목소리"'); process.exit(1); }
+let [file, title = '내 목소리'] = process.argv.slice(2);
+if (file === '--latest') {
+  file = await findLatestRecording();
+  if (!file) { console.error('최근 녹음 파일을 못 찾았습니다. 경로를 직접 지정하세요.'); process.exit(1); }
+  console.log(`
+  [2m찾음: ${file}[0m`);
+}
+if (!file) { console.error('사용법: npm run clone -- --latest "내 목소리"   또는   npm run clone -- samples/my.m4a "내 목소리"'); process.exit(1); }
 
 const key = process.env.FISH_API_KEY;
 if (!key || key.startsWith('your_')) { console.error('FISH_API_KEY가 .env에 없습니다.'); process.exit(1); }
