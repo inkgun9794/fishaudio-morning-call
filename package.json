@@ -9,7 +9,8 @@
     "ab": "node --env-file=.env src/ab-demo.mjs",
     "voices": "node --env-file=.env src/voices.mjs",
     "rec": "node src/record.mjs",
-    "render": "node src/render.mjs"
+    "render": "node src/render.mjs",
+    "clone": "node --env-file=.env src/clone.mjs"
   },
   "engines": {
     "node": ">=20"
