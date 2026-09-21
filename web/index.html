@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모닝콜 스튜디오</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#272c38;
+  --fg:#e6e8ee; --dim:#8b93a7; --tag:#c792ea; --ok:#7ee787; --err:#ff7b72;
+  --accent:#7c9cff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.6 "Pretendard","Malgun Gothic",-apple-system,system-ui,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+
+header{position:sticky;top:0;z-index:10;background:rgba(15,17,21,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 20px;
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{margin:0;font-size:16px;font-weight:650;letter-spacing:-.01em}
+header .sp{flex:1}
+select,input[type=text]{background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;padding:7px 10px;outline:none}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 13px}
+.btn:hover{border-color:#3a4152;background:#232833}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0e14;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:default}
+
+main{max-width:1180px;margin:0 auto;padding:22px 20px 80px;
+  display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:14px;margin-bottom:12px}
+.stage .row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.stage .at{width:92px;text-align:center;font-variant-numeric:tabular-nums;
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.stage .grow{flex:1}
+.stage textarea{width:100%;min-height:76px;resize:vertical;background:var(--panel2);
+  border:1px solid var(--line);border-radius:8px;padding:11px 12px;outline:none;line-height:1.65}
+.stage .meta{display:flex;gap:10px;align-items:center;margin-top:9px;
+  font-size:13px;color:var(--dim);min-height:22px}
+.icon{background:none;border:1px solid var(--line);border-radius:7px;
+  width:32px;height:32px;display:grid;place-items:center;color:var(--dim)}
+.icon:hover{color:var(--fg);border-color:#3a4152}
+
+aside{position:sticky;top:76px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:14px;max-height:calc(100vh - 100px);overflow:auto}
+aside h2{margin:0 0 4px;font-size:13px;color:var(--dim);font-weight:600}
+aside p.hint{margin:0 0 12px;font-size:12px;color:var(--dim);line-height:1.5}
+.grp{margin-bottom:14px}
+.grp h3{margin:0 0 7px;font-size:11px;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.07em;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;
+  padding:4px 10px;font-size:12.5px;color:var(--tag)}
+.chip:hover{border-color:var(--tag);background:#241e2e}
+.chip small{color:var(--dim);margin-left:4px;font-size:11px}
+
+footer{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.94);
+  backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 20px;
+  display:flex;gap:12px;align-items:center;justify-content:center}
+#log{color:var(--dim);font-size:13px}
+.ok{color:var(--ok)} .err{color:var(--err)} .playing{color:var(--accent)}
+.empty{color:var(--dim);text-align:center;padding:40px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>모닝콜 스튜디오</h1>
+  <input type="text" id="name" placeholder="모닝콜 이름" style="width:150px">
+  <select id="saved" style="max-width:170px"><option value="">불러오기…</option></select>
+  <span class="sp"></span>
+  <select id="voice" style="max-width:220px"></select>
+  <button class="btn" id="save">저장</button>
+</header>
+
+<main>
+  <section>
+    <div id="stages"></div>
+    <button class="btn" id="add">+ 단계 추가</button>
+  </section>
+
+  <aside>
+    <h2>태그 팔레트</h2>
+    <p class="hint">대사 칸을 클릭한 뒤 태그를 누르면 커서 자리에 들어가요. 겹쳐 쓸 수 있어요.</p>
+    <div id="palette"></div>
+  </aside>
+</main>
+
+<footer>
+  <button class="btn primary" id="build">전체 굽기</button>
+  <button class="btn" id="reveal" disabled>폴더 열기</button>
+  <span id="log"></span>
+</footer>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const el = (t, p = {}) => Object.assign(document.createElement(t), p);
+
+const PALETTE = [
+  ['모닝콜 조합', [
+    ['[whispering][soft tone]','1차 달콤'], ['[soft tone][calm]','1차 다정'],
+    ['[sighing][worried]','2차 슬슬'], ['[unhappy][in a hurry tone]','2차 짜증'],
+    ['[shouting][angry]','3차 버럭'], ['[screaming][in a hurry tone]','3차 절규'],
+    ['[sarcastic][chuckling]','비꼼'], ['[resigned][sighing]','체념'],
+  ]],
+  ['톤', [
+    ['[whispering]','속삭임'], ['[soft tone]','부드럽게'], ['[in a hurry tone]','다급하게'],
+    ['[shouting]','외침'], ['[screaming]','고함'], ['[emphasis]','강조'],
+  ]],
+  ['감정', [
+    ['[happy]','기쁨'], ['[excited]','신남'], ['[calm]','차분'], ['[worried]','걱정'],
+    ['[angry]','화남'], ['[annoyed]','짜증'], ['[sad]','슬픔'], ['[sarcastic]','비꼼'],
+    ['[indifferent]','시큰둥'], ['[resigned]','체념'], ['[determined]','단호'],
+    ['[bored]','지루함'], ['[proud]','뿌듯'], ['[grateful]','고마움'],
+  ]],
+  ['소리', [
+    ['[sighing]','한숨'], ['[chuckling]','킥킥'], ['[laughing]','웃음'],
+    ['[yawning]','하품'], ['[groaning]','끙'], ['[clear throat]','헛기침'], ['[gasping]','헉'],
+  ]],
+  ['사이', [ ['[break]','짧은 쉼'], ['[long-break]','긴 쉼'] ]],
+];
+
+let stages = [];
+let focused = null;
+let lastDir = '';
+
+function render() {
+  const box = $('#stages');
+  box.innerHTML = '';
+  if (!stages.length) {
+    box.append(el('div', { className: 'empty', textContent: '단계를 추가해서 시작하세요' }));
+    return;
+  }
+  stages.forEach((s, i) => {
+    const card = el('div', { className: 'stage' });
+
+    const row = el('div', { className: 'row' });
+    const at = el('input', { className: 'at', type: 'text', value: s.at || '', placeholder: '07:00' });
+    at.oninput = () => { s.at = at.value; };
+    const spacer = el('div', { className: 'grow' });
+    const up = el('button', { className: 'icon', textContent: '↑', title: '위로' });
+    up.onclick = () => { if (i > 0) { [stages[i-1], stages[i]] = [stages[i], stages[i-1]]; render(); } };
+    const down = el('button', { className: 'icon', textContent: '↓', title: '아래로' });
+    down.onclick = () => { if (i < stages.length-1) { [stages[i+1], stages[i]] = [stages[i], stages[i+1]]; render(); } };
+    const del = el('button', { className: 'icon', textContent: '×', title: '삭제' });
+    del.onclick = () => { stages.splice(i, 1); render(); };
+    row.append(at, spacer, up, down, del);
+
+    const ta = el('textarea', { value: s.text || '', placeholder: '[whispering][soft tone] 일어나... 아침이야.' });
+    ta.oninput = () => { s.text = ta.value; };
+    ta.onfocus = () => { focused = ta; };
+
+    const meta = el('div', { className: 'meta' });
+    const play = el('button', { className: 'btn', textContent: '▶ 미리듣기' });
+    const status = el('span', {});
+    play.onclick = async () => {
+      if (!ta.value.trim()) return;
+      play.disabled = true; status.className = 'playing'; status.textContent = '굽는 중…';
+      try {
+        const r = await fetch('/api/tts', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: ta.value, referenceId: $('#voice').value }),
+        });
+        if (!r.ok) throw new Error((await r.json()).error || r.status);
+        const a = new Audio(URL.createObjectURL(await r.blob()));
+        status.textContent = '재생 중';
+        a.onended = () => { status.textContent = ''; status.className = ''; };
+        a.play();
+      } catch (e) {
+        status.className = 'err'; status.textContent = String(e.message).slice(0, 70);
+      } finally { play.disabled = false; }
+    };
+    meta.append(play, status);
+
+    card.append(row, ta, meta);
+    box.append(card);
+  });
+}
+
+$('#add').onclick = () => {
+  const lastAt = stages.length ? stages[stages.length-1].at : null;
+  let next = '07:00';
+  if (lastAt && /^[0-9]{1,2}:[0-9]{2}$/.test(lastAt)) {
+    const parts = lastAt.split(':').map(Number);
+    const t = parts[0]*60 + parts[1] + 10;
+    next = String(Math.floor(t/60)%24).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
+  }
+  stages.push({ at: next, text: '' });
+  render();
+};
+
+function buildPalette() {
+  const box = $('#palette');
+  for (const group of PALETTE) {
+    const g = el('div', { className: 'grp' });
+    g.append(el('h3', { textContent: group[0] }));
+    const chips = el('div', { className: 'chips' });
+    for (const item of group[1]) {
+      const c = el('button', { className: 'chip' });
+      c.append(document.createTextNode(item[0]));
+      if (item[1]) c.append(el('small', { textContent: item[1] }));
+      c.onmousedown = (e) => e.preventDefault();
+      c.onclick = () => insert(item[0]);
+      chips.append(c);
+    }
+    g.append(chips);
+    box.append(g);
+  }
+}
+
+function insert(tag) {
+  const ta = focused || document.querySelector('.stage textarea');
+  if (!ta) return;
+  ta.focus();
+  const i = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
+  const j = ta.selectionEnd != null ? ta.selectionEnd : i;
+  const needSpace = ta.value[j] === ' ' ? '' : ' ';
+  ta.value = ta.value.slice(0, i) + tag + needSpace + ta.value.slice(j);
+  const pos = i + tag.length + needSpace.length;
+  ta.setSelectionRange(pos, pos);
+  ta.dispatchEvent(new Event('input'));
+}
+
+async function refreshSaved() {
+  const data = await (await fetch('/api/calls')).json();
+  const sel = $('#saved');
+  sel.innerHTML = '<option value="">불러오기…</option>';
+  for (const it of data.items) sel.append(el('option', { value: it.name, textContent: it.name + ' (' + it.stages + ')' }));
+}
+
+$('#saved').onchange = async (e) => {
+  const name = e.target.value;
+  if (!name) return;
+  const c = await (await fetch('/api/calls/' + encodeURIComponent(name))).json();
+  $('#name').value = name;
+  stages = c.stages || [];
+  render();
+  log(name + ' 불러옴', 'ok');
+  e.target.value = '';
+};
+
+$('#save').onclick = async () => {
+  const name = $('#name').value.trim();
+  if (!name) return log('이름을 먼저 정해주세요', 'err');
+  const r = await fetch('/api/calls/' + encodeURIComponent(name), {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: name, stages }),
+  });
+  if (r.ok) { log('저장됨', 'ok'); refreshSaved(); }
+  else log('저장 실패', 'err');
+};
+
+$('#build').onclick = async () => {
+  const name = $('#name').value.trim();
+  if (!name) return log('이름을 먼저 정해주세요', 'err');
+  const use = stages.filter((s) => s.text && s.text.trim());
+  if (!use.length) return log('대사가 하나도 없어요', 'err');
+
+  $('#build').disabled = true;
+  log(use.length + '개 굽는 중…');
+  try {
+    const r = await fetch('/api/build', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, stages: use, referenceId: $('#voice').value }),
+    });
+    const data = await r.json();
+    const ok = data.results.filter((x) => x.ok).length;
+    lastDir = data.dir;
+    $('#reveal').disabled = false;
+    log(ok + '/' + data.results.length + ' 완성 · ' + data.dir, ok === data.results.length ? 'ok' : 'err');
+  } catch (e) { log(String(e.message), 'err'); }
+  finally { $('#build').disabled = false; }
+};
+
+$('#reveal').onclick = () => fetch('/api/reveal', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ dir: lastDir }),
+});
+
+function log(msg, cls) { const l = $('#log'); l.className = cls || ''; l.textContent = msg; }
+
+(async function init() {
+  buildPalette();
+  const data = await (await fetch('/api/voices')).json();
+  const sel = $('#voice');
+  sel.append(el('option', { value: '', textContent: '기본 보이스' }));
+  for (const v of data.items) sel.append(el('option', { value: v.id, textContent: v.title }));
+  sel.value = data.current || '';
+  await refreshSaved();
+  stages = [{ at: '07:00', text: '' }];
+  render();
+})();
+</script>
+</body>
+</html>

@@ -5,13 +5,14 @@
   "type": "module",
   "description": "Fish Audio Emotion Tags로 만드는 감정형 모닝콜",
   "scripts": {
-    "call": "node --env-file=.env src/generate.mjs",
-    "ab": "node --env-file=.env src/ab-demo.mjs",
     "voices": "node --env-file=.env src/voices.mjs",
     "rec": "node src/record.mjs",
     "render": "node src/render.mjs",
     "clone": "node --env-file=.env src/clone.mjs",
-    "setup": "node src/setup.mjs"
+    "setup": "node src/setup.mjs",
+    "build": "node --env-file=.env src/build.mjs",
+    "say": "node --env-file=.env src/say.mjs",
+    "start": "node --env-file=.env server/index.mjs"
   },
   "engines": {
     "node": ">=20"

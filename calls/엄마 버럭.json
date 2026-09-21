@@ -1,0 +1,17 @@
+{
+  "title": "화난 목소리로 깨우기",
+  "stages": [
+    {
+      "at": "07:00",
+      "text": "[annoyed][in a hurry tone] 야. 세 번째다. 밥 식는다."
+    },
+    {
+      "at": "07:10",
+      "text": "[screaming][angry] 안 일어나?! 엄마 진짜 올라간다!!"
+    },
+    {
+      "at": "07:20",
+      "text": "[resigned][sighing] 됐다. 굶어라. 엄마는 모르겠다."
+    }
+  ]
+}

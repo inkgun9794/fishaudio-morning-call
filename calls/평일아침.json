@@ -1,0 +1,9 @@
+{
+  "title": "평일 아침",
+  "stages": [
+    { "at": "07:00", "text": "[whispering][soft tone] 일어나... 아침이야. 눈만 살짝 떠볼래?" },
+    { "at": "07:10", "text": "[sighing][worried] 하아... 두 번째야. 진짜 일어나야 돼." },
+    { "at": "07:20", "text": "[shouting][angry] 야!! 일어나!! 지금 몇 시인 줄 알아?!" },
+    { "at": "07:21", "text": "[sarcastic][chuckling] 어~ 그래. 계속 자. 나는 모르겠다." }
+  ]
+}
