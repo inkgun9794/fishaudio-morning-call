@@ -8,6 +8,7 @@ import { homedir } from 'node:os';
 async function findLatestRecording() {
   const home = homedir();
   const dirs = ['Documents/Sound recordings', 'Documents/사운드 레코딩', 'Documents/Sound Recordings',
+                'OneDrive/문서/소리 녹음', 'OneDrive/Documents/Sound recordings', 'OneDrive/문서/사운드 레코딩',
                 'Music/Sound recordings', 'Downloads', 'Desktop'].map((d) => join(home, d));
   dirs.push('samples');
   const exts = new Set(['.m4a', '.wav', '.mp3', '.opus']);
